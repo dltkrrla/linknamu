@@ -1,0 +1,775 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ENC 탄화감지 아카이브</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f3f1ec;
+    --surface:#ffffff;
+    --surface-2:#ece7dc;
+    --border:#ddd6c5;
+    --text:#221e17;
+    --text-dim:#6f6656;
+    --accent:#bd4f1a;
+    --accent-strong:#9c3f13;
+    --accent-soft:#f1dcc7;
+    --accent-ink:#ffffff;
+    --teal:#1c6a5e;
+    --teal-soft:#d9ece7;
+    --warn:#a9700a;
+    --warn-soft:#f3e3c4;
+    --crit:#a3281b;
+    --crit-soft:#f4d9d4;
+    --shadow:rgba(40,32,20,0.14);
+    --overlay:rgba(26,20,12,0.45);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#1b1610;
+      --surface:#241d15;
+      --surface-2:#2c2318;
+      --border:#423624;
+      --text:#f1e9da;
+      --text-dim:#b7a98f;
+      --accent:#e8813f;
+      --accent-strong:#ffa564;
+      --accent-soft:#3a2a18;
+      --accent-ink:#1b1610;
+      --teal:#5cbba8;
+      --teal-soft:#1f3a34;
+      --warn:#e2ad4c;
+      --warn-soft:#3a2f16;
+      --crit:#f2786a;
+      --crit-soft:#3c211d;
+      --shadow:rgba(0,0,0,0.45);
+      --overlay:rgba(10,8,5,0.6);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1b1610;
+    --surface:#241d15;
+    --surface-2:#2c2318;
+    --border:#423624;
+    --text:#f1e9da;
+    --text-dim:#b7a98f;
+    --accent:#e8813f;
+    --accent-strong:#ffa564;
+    --accent-soft:#3a2a18;
+    --accent-ink:#1b1610;
+    --teal:#5cbba8;
+    --teal-soft:#1f3a34;
+    --warn:#e2ad4c;
+    --warn-soft:#3a2f16;
+    --crit:#f2786a;
+    --crit-soft:#3c211d;
+    --shadow:rgba(0,0,0,0.45);
+    --overlay:rgba(10,8,5,0.6);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans","Noto Sans KR",-apple-system,sans-serif;
+    padding-inline:16px;
+    padding-block:0;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  h1,h2,h3{font-family:"Oswald","IBM Plex Sans",sans-serif;letter-spacing:.01em;text-wrap:balance;margin:0;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:env(safe-area-inset-top,0px);z-index:30;
+    margin-inline:-16px;padding-inline:16px;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:24px 24px;
+    background-position:center;
+  }
+  .topbar-inner{
+    max-width:1100px;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding-block:14px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .brand-mark{
+    font-family:"Oswald",sans-serif;font-weight:700;font-size:1.5rem;
+    letter-spacing:.06em;color:var(--accent);
+  }
+  .brand-sub{font-size:.92rem;color:var(--text-dim);font-weight:500;}
+
+  .btn{
+    border:1px solid var(--border);background:var(--surface);color:var(--text);
+    padding:9px 16px;border-radius:7px;font-size:.88rem;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .btn:hover{background:var(--surface-2);}
+  .btn:active{transform:scale(.97);}
+  .btn-accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .btn-accent:hover{background:var(--accent-strong);border-color:var(--accent-strong);}
+  .btn:focus-visible, .chip:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .icon-btn:focus-visible, .stat-tile:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;
+  }
+
+  /* ---------- stats strip ---------- */
+  .stats-strip{
+    max-width:1100px;margin:16px auto 0;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:10px;
+  }
+  .stat-tile{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;cursor:pointer;text-align:left;color:var(--text);
+    display:flex;flex-direction:column;gap:4px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .stat-tile:hover{border-color:var(--accent);}
+  .stat-tile.active{background:var(--accent-soft);border-color:var(--accent);}
+  .stat-tile .stat-label{font-size:.74rem;color:var(--text-dim);font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+  .stat-tile .stat-value{font-family:"IBM Plex Mono",monospace;font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;}
+
+  /* ---------- filter bar ---------- */
+  .filter-bar{
+    max-width:1100px;margin:14px auto 0;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .filter-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+  .filter-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .filter-label{font-size:.74rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--border);background:var(--surface);color:var(--text-dim);
+    padding:6px 12px;border-radius:999px;font-size:.82rem;font-weight:600;cursor:pointer;
+    transition:all .15s ease;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--text);}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .search-row{gap:10px;}
+  #searchInput{
+    flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);
+    color:var(--text);padding:9px 12px;border-radius:7px;font-size:.88rem;
+  }
+  #sortSelect{
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:9px 10px;border-radius:7px;font-size:.85rem;
+  }
+
+  /* ---------- notice ---------- */
+  .notice{
+    max-width:1100px;margin:14px auto 0;
+    background:var(--teal-soft);border:1px solid var(--teal);color:var(--text);
+    border-radius:8px;padding:10px 14px;font-size:.84rem;line-height:1.5;
+    display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+  }
+  .notice button{background:none;border:none;color:var(--teal);font-weight:700;cursor:pointer;font-size:.9rem;padding:0;}
+
+  /* ---------- content ---------- */
+  .content{max-width:1100px;margin:18px auto 60px;}
+  .loading-state,.empty-state{
+    text-align:center;color:var(--text-dim);padding:60px 20px;font-size:.92rem;
+  }
+  .case-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;
+  }
+  .case-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px;cursor:pointer;text-align:left;color:var(--text);
+    display:flex;flex-direction:column;gap:8px;
+    box-shadow:0 1px 2px var(--shadow);
+    transition:transform .12s ease, border-color .15s ease;
+  }
+  .case-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .badge-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .badge{
+    font-size:.68rem;font-weight:700;letter-spacing:.03em;padding:3px 8px;border-radius:5px;
+    background:var(--surface-2);color:var(--text-dim);white-space:nowrap;
+  }
+  .badge-model{color:var(--text);}
+  .pill{
+    font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;
+  }
+  .pill-obs{background:var(--teal-soft);color:var(--teal);}
+  .pill-warn{background:var(--warn-soft);color:var(--warn);}
+  .pill-crit{background:var(--crit-soft);color:var(--crit);}
+  .sample-tag{font-size:.66rem;font-weight:700;color:var(--text-dim);border:1px dashed var(--border);padding:2px 7px;border-radius:5px;}
+  .card-title{font-size:1rem;font-weight:600;line-height:1.35;}
+  .card-desc{
+    font-size:.84rem;color:var(--text-dim);line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card-meta{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:.76rem;color:var(--text-dim);margin-top:2px;
+    border-top:1px solid var(--border);padding-top:8px;
+  }
+  .card-meta .unit{font-weight:600;}
+  .photo-flag{display:inline-flex;align-items:center;gap:3px;}
+
+  /* ---------- overlay / slideover ---------- */
+  .overlay{
+    position:fixed;inset:0;background:var(--overlay);z-index:40;
+  }
+  .slideover{
+    position:fixed;top:0;right:0;bottom:0;z-index:50;
+    width:min(440px,92vw);background:var(--surface);
+    border-left:1px solid var(--border);
+    box-shadow:-8px 0 30px var(--shadow);
+    display:flex;flex-direction:column;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .slideover-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .slideover-head h2{font-size:1.05rem;}
+  .icon-btn{
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:.9rem;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .icon-btn:hover{border-color:var(--accent);}
+  .slideover-body{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;}
+
+  /* ---------- detail view ---------- */
+  .detail-head{display:flex;flex-direction:column;gap:8px;}
+  .detail-title{font-size:1.2rem;font-weight:600;line-height:1.4;}
+  .detail-photo{width:100%;border-radius:10px;border:1px solid var(--border);display:block;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .detail-field{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:9px 11px;display:flex;flex-direction:column;gap:2px;
+  }
+  .detail-field .k{font-size:.68rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .detail-field .v{font-size:.9rem;font-weight:600;}
+  .detail-block{display:flex;flex-direction:column;gap:6px;}
+  .detail-block .k{font-size:.74rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .detail-block .v{font-size:.9rem;line-height:1.6;white-space:pre-wrap;}
+
+  /* ---------- form ---------- */
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:.8rem;font-weight:600;color:var(--text-dim);}
+  .field input,.field select,.field textarea{
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:9px 11px;border-radius:7px;font-size:.9rem;width:100%;
+  }
+  .field textarea{resize:vertical;min-height:72px;line-height:1.5;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .photo-preview{
+    width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);
+  }
+  .form-actions{display:flex;gap:10px;margin-top:4px;}
+  .form-msg{font-size:.82rem;padding:9px 11px;border-radius:7px;margin:0;}
+  .form-msg.err{background:var(--crit-soft);color:var(--crit);}
+  .form-msg.ok{background:var(--teal-soft);color:var(--teal);}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:max(20px, env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%);z-index:60;
+    background:var(--text);color:var(--bg);
+    padding:10px 18px;border-radius:8px;font-size:.85rem;font-weight:600;
+    box-shadow:0 4px 20px var(--shadow);
+  }
+
+  @media (max-width:640px){
+    .stats-strip{grid-template-columns:repeat(2,1fr);}
+    .detail-grid{grid-template-columns:1fr;}
+    .field-row{flex-direction:column;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">ENC</span>
+      <span class="brand-sub">탄화 조기감지 사례 아카이브</span>
+    </div>
+    <button class="btn btn-accent" id="openAddBtn" type="button">+ 사례 등록</button>
+  </div>
+</div>
+
+<div class="stats-strip" id="statsStrip"></div>
+
+<div class="notice" id="notice">
+  <span>현재 사례는 예시 데이터로 채워져 있습니다. "+ 사례 등록"으로 실제 조기감지 사례를 추가해 주세요.</span>
+  <button id="dismissNotice" type="button" aria-label="안내 닫기">✕</button>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-row">
+    <div class="filter-group">
+      <span class="filter-label">설비모델</span>
+      <div class="chip-row" id="modelChips"></div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">GROUP</span>
+      <div class="chip-row" id="groupChips"></div>
+    </div>
+  </div>
+  <div class="filter-row search-row">
+    <input type="search" id="searchInput" placeholder="제목 · 설명 · 호기 검색">
+    <select id="sortSelect">
+      <option value="desc">최신순</option>
+      <option value="asc">오래된순</option>
+    </select>
+  </div>
+</div>
+
+<main class="content">
+  <div class="loading-state" id="loadingState">사례를 불러오는 중…</div>
+  <div class="empty-state" id="emptyState" hidden>조건에 맞는 사례가 없습니다.</div>
+  <div class="case-grid" id="caseGrid" hidden></div>
+</main>
+
+<div class="overlay" id="detailOverlay" hidden></div>
+<aside class="slideover" id="detailPanel" hidden>
+  <div class="slideover-head">
+    <h2>사례 상세</h2>
+    <button class="icon-btn" id="closeDetailBtn" type="button" aria-label="닫기">✕</button>
+  </div>
+  <div class="slideover-body" id="detailBody"></div>
+</aside>
+
+<div class="overlay" id="addOverlay" hidden></div>
+<aside class="slideover" id="addPanel" hidden>
+  <div class="slideover-head">
+    <h2>사례 등록</h2>
+    <button class="icon-btn" id="closeAddBtn" type="button" aria-label="닫기">✕</button>
+  </div>
+  <form class="slideover-body" id="caseForm">
+    <div class="field">
+      <label for="caseTitle">제목</label>
+      <input id="caseTitle" name="title" type="text" required maxlength="120" placeholder="예: PM 챔버 히터 블록 주변 탄화 흔적">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="caseModel">설비모델</label>
+        <select id="caseModel" name="equipmentModel" required></select>
+      </div>
+      <div class="field">
+        <label for="caseGroup">GROUP</label>
+        <select id="caseGroup" name="group" required></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="caseUnit">호기 / 위치</label>
+        <input id="caseUnit" name="unitNo" type="text" maxlength="40" placeholder="예: PM-3">
+      </div>
+      <div class="field">
+        <label for="caseSeverity">심각도</label>
+        <select id="caseSeverity" name="severity" required></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="caseDate">발생일</label>
+      <input id="caseDate" name="occurredAt" type="date" required>
+    </div>
+    <div class="field">
+      <label for="caseDesc">감지 내용</label>
+      <textarea id="caseDesc" name="description" required maxlength="1000" placeholder="ENC 시스템이 감지한 위치와 패턴, 육안 확인 결과 등을 적어주세요."></textarea>
+    </div>
+    <div class="field">
+      <label for="caseAction">조치 사항 (선택)</label>
+      <textarea id="caseAction" name="action" maxlength="600" placeholder="클리닝, 파트 교체, 파라미터 조정 등"></textarea>
+    </div>
+    <div class="field">
+      <label for="caseReporter">담당자 (선택)</label>
+      <input id="caseReporter" name="reporter" type="text" maxlength="40" placeholder="이름 또는 부서">
+    </div>
+    <div class="field">
+      <label for="casePhoto">사진 첨부 (선택)</label>
+      <input id="casePhoto" name="photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      <img id="photoPreview" class="photo-preview" hidden>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-accent" id="submitBtn">등록하기</button>
+      <button type="button" class="btn" id="cancelAddBtn">취소</button>
+    </div>
+    <p class="form-msg" id="formMsg" hidden></p>
+  </form>
+</aside>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MODELS = ["VIISTA-HCP", "VIISTA TRIDENT", "VIISTA-900XPT"];
+  var GROUPS = ["1 GROUP", "2 GROUP", "3 GROUP", "4 GROUP"];
+  var SEVERITIES = [
+    {value:"관찰", key:"obs"},
+    {value:"주의", key:"warn"},
+    {value:"심각", key:"crit"}
+  ];
+  function sevMeta(v){
+    for (var i=0;i<SEVERITIES.length;i++){ if (SEVERITIES[i].value===v) return SEVERITIES[i]; }
+    return {value:v||"관찰", key:"obs"};
+  }
+
+  var state = { model:"all", group:"all", search:"", sort:"desc" };
+  var allCases = [];
+  var dbNs = null;
+  var assetsNs = null;
+
+  function todayStr(){
+    var d = new Date();
+    var off = d.getTimezoneOffset();
+    var local = new Date(d.getTime() - off*60000);
+    return local.toISOString().slice(0,10);
+  }
+  function fmtDate(s){
+    if (!s) return "-";
+    return String(s).replaceAll("-", ".");
+  }
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  // ---------- build static UI pieces ----------
+  function buildChips(container, values, key){
+    var frag = document.createDocumentFragment();
+    var allChip = document.createElement("button");
+    allChip.type = "button"; allChip.className = "chip active"; allChip.textContent = "전체"; allChip.dataset.value = "all";
+    frag.appendChild(allChip);
+    values.forEach(function(v){
+      var c = document.createElement("button");
+      c.type = "button"; c.className = "chip"; c.textContent = v; c.dataset.value = v;
+      frag.appendChild(c);
+    });
+    container.appendChild(frag);
+    container.addEventListener("click", function(e){
+      var btn = e.target.closest(".chip");
+      if (!btn) return;
+      state[key] = btn.dataset.value;
+      Array.prototype.forEach.call(container.querySelectorAll(".chip"), function(c){
+        c.classList.toggle("active", c === btn);
+      });
+      render();
+    });
+  }
+  buildChips(document.getElementById("modelChips"), MODELS, "model");
+  buildChips(document.getElementById("groupChips"), GROUPS, "group");
+
+  function fillSelect(sel, values){
+    values.forEach(function(v){
+      var opt = document.createElement("option");
+      opt.value = typeof v === "string" ? v : v.value;
+      opt.textContent = typeof v === "string" ? v : v.value;
+      sel.appendChild(opt);
+    });
+  }
+  fillSelect(document.getElementById("caseModel"), MODELS);
+  fillSelect(document.getElementById("caseGroup"), GROUPS);
+  fillSelect(document.getElementById("caseSeverity"), SEVERITIES);
+  document.getElementById("caseDate").value = todayStr();
+  document.getElementById("caseDate").max = todayStr();
+
+  // ---------- stats strip ----------
+  var statsStrip = document.getElementById("statsStrip");
+  function renderStats(){
+    var total = allCases.length;
+    var counts = {};
+    GROUPS.forEach(function(g){ counts[g] = 0; });
+    allCases.forEach(function(c){ if (counts[c.group] != null) counts[c.group]++; });
+
+    var html = "";
+    html += '<button type="button" class="stat-tile' + (state.group==="all"?" active":"") + '" data-group="all">' +
+      '<span class="stat-label">전체</span><span class="stat-value mono">' + total + '</span></button>';
+    GROUPS.forEach(function(g){
+      html += '<button type="button" class="stat-tile' + (state.group===g?" active":"") + '" data-group="' + escapeHtml(g) + '">' +
+        '<span class="stat-label">' + escapeHtml(g) + '</span><span class="stat-value mono">' + counts[g] + '</span></button>';
+    });
+    statsStrip.innerHTML = html;
+  }
+  statsStrip.addEventListener("click", function(e){
+    var btn = e.target.closest(".stat-tile");
+    if (!btn) return;
+    state.group = btn.dataset.group;
+    Array.prototype.forEach.call(document.querySelectorAll("#groupChips .chip"), function(c){
+      c.classList.toggle("active", c.dataset.value === state.group);
+    });
+    render();
+  });
+
+  // ---------- notice dismiss ----------
+  var notice = document.getElementById("notice");
+  try {
+    if (localStorage.getItem("enc_notice_dismissed") === "1") notice.hidden = true;
+  } catch(e){}
+  document.getElementById("dismissNotice").addEventListener("click", function(){
+    notice.hidden = true;
+    try { localStorage.setItem("enc_notice_dismissed", "1"); } catch(e){}
+  });
+
+  // ---------- filters ----------
+  document.getElementById("searchInput").addEventListener("input", function(e){
+    state.search = e.target.value.trim().toLowerCase();
+    render();
+  });
+  document.getElementById("sortSelect").addEventListener("change", function(e){
+    state.sort = e.target.value;
+    render();
+  });
+
+  // ---------- grid render ----------
+  var loadingState = document.getElementById("loadingState");
+  var emptyState = document.getElementById("emptyState");
+  var caseGrid = document.getElementById("caseGrid");
+  var firstSnapshotSeen = false;
+
+  function filteredCases(){
+    var list = allCases.filter(function(c){
+      if (state.model !== "all" && c.equipmentModel !== state.model) return false;
+      if (state.group !== "all" && c.group !== state.group) return false;
+      if (state.search){
+        var hay = ((c.title||"") + " " + (c.description||"") + " " + (c.unitNo||"")).toLowerCase();
+        if (hay.indexOf(state.search) === -1) return false;
+      }
+      return true;
+    });
+    list.sort(function(a,b){
+      var da = a.occurredAt || "", db_ = b.occurredAt || "";
+      if (da < db_) return state.sort==="asc" ? -1 : 1;
+      if (da > db_) return state.sort==="asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }
+
+  function cardHtml(c){
+    var sm = sevMeta(c.severity);
+    var photoFlag = c.photoId ? '<span class="photo-flag" title="사진 첨부됨">📷</span>' : '';
+    return (
+      '<button type="button" class="case-card" data-id="' + escapeHtml(c.id) + '">' +
+        '<div class="card-top">' +
+          '<div class="badge-row">' +
+            '<span class="badge badge-model">' + escapeHtml(c.equipmentModel||"-") + '</span>' +
+            '<span class="badge">' + escapeHtml(c.group||"-") + '</span>' +
+          '</div>' +
+          '<span class="pill pill-' + sm.key + '">' + escapeHtml(sm.value) + '</span>' +
+        '</div>' +
+        '<div class="card-title">' + escapeHtml(c.title||"(제목 없음)") + (c.sample ? ' <span class="sample-tag">예시</span>' : '') + '</div>' +
+        '<div class="card-desc">' + escapeHtml(c.description||"") + '</div>' +
+        '<div class="card-meta">' +
+          '<span class="unit">' + escapeHtml(c.unitNo||"-") + '</span>' +
+          '<span class="mono">' + fmtDate(c.occurredAt) + '</span>' +
+          photoFlag +
+        '</div>' +
+      '</button>'
+    );
+  }
+
+  function render(){
+    renderStats();
+    if (!firstSnapshotSeen) return;
+    var list = filteredCases();
+    if (list.length === 0){
+      caseGrid.hidden = true;
+      emptyState.hidden = false;
+    } else {
+      emptyState.hidden = true;
+      caseGrid.hidden = false;
+      caseGrid.innerHTML = list.map(cardHtml).join("");
+    }
+  }
+
+  caseGrid.addEventListener("click", function(e){
+    var card = e.target.closest(".case-card");
+    if (!card) return;
+    var c = allCases.find(function(x){ return x.id === card.dataset.id; });
+    if (c) openDetail(c);
+  });
+
+  // ---------- detail panel ----------
+  var detailOverlay = document.getElementById("detailOverlay");
+  var detailPanel = document.getElementById("detailPanel");
+  var detailBody = document.getElementById("detailBody");
+
+  function openDetail(c){
+    var sm = sevMeta(c.severity);
+    var photoHtml = c.photoId ? '<img class="detail-photo" src="/_blob/' + encodeURIComponent(c.photoId) + '" alt="현장 사진">' : '';
+    detailBody.innerHTML =
+      '<div class="detail-head">' +
+        '<div class="badge-row">' +
+          '<span class="badge badge-model">' + escapeHtml(c.equipmentModel||"-") + '</span>' +
+          '<span class="pill pill-' + sm.key + '">' + escapeHtml(sm.value) + '</span>' +
+          (c.sample ? '<span class="sample-tag">예시 데이터</span>' : '') +
+        '</div>' +
+        '<h3 class="detail-title">' + escapeHtml(c.title||"(제목 없음)") + '</h3>' +
+      '</div>' +
+      photoHtml +
+      '<div class="detail-grid">' +
+        '<div class="detail-field"><span class="k">GROUP</span><span class="v">' + escapeHtml(c.group||"-") + '</span></div>' +
+        '<div class="detail-field"><span class="k">호기 / 위치</span><span class="v">' + escapeHtml(c.unitNo||"-") + '</span></div>' +
+        '<div class="detail-field"><span class="k">발생일</span><span class="v mono">' + fmtDate(c.occurredAt) + '</span></div>' +
+        '<div class="detail-field"><span class="k">담당자</span><span class="v">' + escapeHtml(c.reporter||"-") + '</span></div>' +
+      '</div>' +
+      '<div class="detail-block"><span class="k">감지 내용</span><span class="v">' + escapeHtml(c.description||"-") + '</span></div>' +
+      (c.action ? '<div class="detail-block"><span class="k">조치 사항</span><span class="v">' + escapeHtml(c.action) + '</span></div>' : '');
+    detailOverlay.hidden = false;
+    detailPanel.hidden = false;
+  }
+  function closeDetail(){ detailOverlay.hidden = true; detailPanel.hidden = true; }
+  document.getElementById("closeDetailBtn").addEventListener("click", closeDetail);
+  detailOverlay.addEventListener("click", closeDetail);
+
+  // ---------- add-case panel ----------
+  var addOverlay = document.getElementById("addOverlay");
+  var addPanel = document.getElementById("addPanel");
+  var caseForm = document.getElementById("caseForm");
+  var formMsg = document.getElementById("formMsg");
+  var submitBtn = document.getElementById("submitBtn");
+  var photoInput = document.getElementById("casePhoto");
+  var photoPreview = document.getElementById("photoPreview");
+  var pendingPhotoFile = null;
+
+  function openAdd(){
+    formMsg.hidden = true;
+    addOverlay.hidden = false;
+    addPanel.hidden = false;
+  }
+  function closeAdd(){
+    addOverlay.hidden = true;
+    addPanel.hidden = true;
+  }
+  document.getElementById("openAddBtn").addEventListener("click", openAdd);
+  document.getElementById("closeAddBtn").addEventListener("click", closeAdd);
+  document.getElementById("cancelAddBtn").addEventListener("click", closeAdd);
+  addOverlay.addEventListener("click", closeAdd);
+
+  photoInput.addEventListener("change", function(){
+    var f = photoInput.files && photoInput.files[0];
+    pendingPhotoFile = f || null;
+    if (f){
+      var url = URL.createObjectURL(f);
+      photoPreview.src = url;
+      photoPreview.hidden = false;
+    } else {
+      photoPreview.hidden = true;
+    }
+  });
+
+  function showToast(text){
+    var t = document.getElementById("toast");
+    t.textContent = text;
+    t.hidden = false;
+    setTimeout(function(){ t.hidden = true; }, 2600);
+  }
+
+  caseForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    if (!dbNs){
+      formMsg.textContent = "데이터베이스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.";
+      formMsg.className = "form-msg err"; formMsg.hidden = false;
+      return;
+    }
+    var fd = new FormData(caseForm);
+    var payload = {
+      title: String(fd.get("title")||"").trim(),
+      equipmentModel: String(fd.get("equipmentModel")||""),
+      group: String(fd.get("group")||""),
+      unitNo: String(fd.get("unitNo")||"").trim(),
+      severity: String(fd.get("severity")||"관찰"),
+      occurredAt: String(fd.get("occurredAt")||todayStr()),
+      description: String(fd.get("description")||"").trim(),
+      action: String(fd.get("action")||"").trim(),
+      reporter: String(fd.get("reporter")||"").trim(),
+      photoId: null,
+      sample: false,
+      createdAt: Date.now()
+    };
+    if (!payload.title || !payload.description || !payload.equipmentModel || !payload.group){
+      formMsg.textContent = "제목, 설비모델, GROUP, 감지 내용은 필수입니다.";
+      formMsg.className = "form-msg err"; formMsg.hidden = false;
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "등록 중…";
+    formMsg.hidden = true;
+
+    Promise.resolve()
+      .then(function(){
+        if (pendingPhotoFile && assetsNs){
+          return assetsNs.upload(pendingPhotoFile).then(function(res){ payload.photoId = res.id; });
+        }
+      })
+      .then(function(){
+        return dbNs.collection("cases").add(payload);
+      })
+      .then(function(){
+        showToast("사례가 등록되었습니다.");
+        caseForm.reset();
+        document.getElementById("caseDate").value = todayStr();
+        pendingPhotoFile = null;
+        photoPreview.hidden = true;
+        closeAdd();
+      })
+      .catch(function(err){
+        var code = err && err.code;
+        var msg = "등록에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+        if (code === "invalid_argument") msg = "이 사이트에 쓰기 권한이 없는 보기 전용 사용자입니다.";
+        else if (code === "quota_exceeded") msg = "저장 공간이 가득 찼습니다. 관리자에게 문의해 주세요.";
+        else if (code === "resource_exhausted") msg = "요청이 많습니다. 잠시 후 다시 시도해 주세요.";
+        formMsg.textContent = msg;
+        formMsg.className = "form-msg err"; formMsg.hidden = false;
+      })
+      .finally(function(){
+        submitBtn.disabled = false;
+        submitBtn.textContent = "등록하기";
+      });
+  });
+
+  // ---------- capability wiring ----------
+  function boot(){
+    if (!window.claude || !window.claude.use){
+      loadingState.textContent = "이 보기에서는 데이터를 불러올 수 없습니다.";
+      return;
+    }
+    Promise.all([window.claude.use("db"), window.claude.use("assets")]).then(function(res){
+      dbNs = res[0]; assetsNs = res[1];
+      if (!dbNs){
+        loadingState.textContent = "이 보기에서는 데이터베이스에 연결할 수 없습니다.";
+        return;
+      }
+      dbNs.collection("cases").orderBy("occurredAt", "desc").limit(500).onSnapshot(
+        function(snap){
+          allCases = snap.docs.map(function(d){
+            var data = d.data() || {};
+            data.id = d.id;
+            return data;
+          });
+          firstSnapshotSeen = true;
+          loadingState.hidden = true;
+          render();
+        },
+        function(err){
+          loadingState.hidden = false;
+          loadingState.textContent = "사례를 불러오지 못했습니다 (" + (err && err.code ? err.code : "오류") + ").";
+        }
+      );
+    });
+  }
+  boot();
+})();
+</script>
+
+</body></html>
